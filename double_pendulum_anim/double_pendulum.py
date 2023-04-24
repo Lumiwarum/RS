@@ -73,12 +73,13 @@ L = K - P
 
 C = M_q.diff(t) @ dq - K.diff(q)
 C.simplify()
+
 g_q = P.diff(q)
 g_q.simplify()
 
 b1, b2, b3 = 0.2, 0.2, 0.2
 Q = sp.Matrix([
-    0,
+    0,#10*(sp.sin(t)-q1)-0.2*q2.diff(t),
     0,
     0
 ])
@@ -86,16 +87,16 @@ Q = sp.Matrix([
 
 ddq = M_q.inv() @ (-C - g_q + Q)
 
-lambda_ddq = sp.lambdify((*q, *dq), ddq)
+lambda_ddq = sp.lambdify((*q, *dq, t), ddq)
 lambda_U = sp.lambdify(((*q, *dq)), K + P)
 
 def f(x, t):
     # x = (q1, q2, dq1, dq2)
     q1, q2, q3, dq1, dq2, dq3 = x
-    return (dq1, dq2, dq3, *lambda_ddq(*x))
+    return (dq1, dq2, dq3, *lambda_ddq(*x, t))
 
 # the time parameters
-t_stop = 10  # how many seconds to simulate
+t_stop = 20  # how many seconds to simulate
 dt = 1/200
 t = np.arange(0, t_stop, dt)
 
@@ -120,6 +121,8 @@ plt.legend(['q1', 'q2', 'q3', 'dq1', 'dq2', 'dq3'])
 plt.savefig('2.5.png')
 plt.show()
 plt.plot(t, lambda_U(q_sol[:, 0], q_sol[:, 1], q_sol[:, 2], q_sol[:, 3], q_sol[:, 4], q_sol[:, 5]))
+if Q[0] != 0:
+  plt.plot(t, 10*np.sin(t))
 plt.legend(['U'])
 plt.savefig('2.4.png')
 
